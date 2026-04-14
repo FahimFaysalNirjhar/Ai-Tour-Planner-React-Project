@@ -3,7 +3,7 @@ import { Button } from "../ui/button";
 
 const Header = () => {
   return (
-    <div className="flex items-center px-6 py-4 border-b border-b-slate-200 justify-between">
+    <div className="flex items-center px-6 py-3 border-b border-b-slate-200 justify-between">
       <img
         src="/logoipsum-264.png"
         alt="Logoipsum"
