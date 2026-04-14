@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
+import { Input } from "../components/ui/input";
 
 const CreateTrip = () => {
   const [query, setQuery] = useState("");
@@ -48,11 +49,11 @@ const CreateTrip = () => {
             onChange: (val) => console.log(val),
           }}
         /> */}
-        <input
+        <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search city..."
-          className="input input-bordered w-full px-4 py-2 border-2 rounded-sm outline-none focus:outline-blue-500"
+          className="input input-bordered w-full py-5 px-4 border-2 rounded-sm outline-none focus:outline-blue-500"
         />
 
         {results.length > 0 && (
@@ -71,6 +72,16 @@ const CreateTrip = () => {
             ))}
           </div>
         )}
+      </div>
+      <div className="my-10">
+        <h2 className="text-xl font-medium mb-3 ">
+          How many days are you planning your trip?
+        </h2>
+        <Input
+          className="py-5 px-4  rounded-sm border-2"
+          placeholder="Ex.3"
+          type="number"
+        />
       </div>
     </div>
   );
