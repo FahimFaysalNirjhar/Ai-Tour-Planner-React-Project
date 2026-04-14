@@ -6,10 +6,10 @@ import { Button } from "../components/ui/button";
 const CreateTrip = () => {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
-  const [formData, setFormData] = useState({}); // ✅ Fix: object, not array
+  const [formData, setFormData] = useState({});
 
   const handleInputChange = (name, value) => {
-    setFormData((prev) => ({ ...prev, [name]: value })); // ✅ Fix: use prev state
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   useEffect(() => {
@@ -67,7 +67,7 @@ const CreateTrip = () => {
                 key={index}
                 onClick={() => {
                   setQuery(item.display_name);
-                  handleInputChange("location", item.display_name); // ✅ Fix: also update formData on select
+                  handleInputChange("location", item.display_name);
                   setResults([]);
                 }}
                 className="p-2 hover:bg-gray-100 cursor-pointer"
@@ -88,7 +88,7 @@ const CreateTrip = () => {
           className="py-5 px-4 rounded-sm border-2"
           placeholder="Ex. 3"
           type="number"
-          onChange={(e) => handleInputChange("days", e.target.value)} // ✅ Fix: wired up
+          onChange={(e) => handleInputChange("days", e.target.value)}
         />
       </div>
 
@@ -99,9 +99,9 @@ const CreateTrip = () => {
           {SelectBudgetOptions.map((item) => (
             <div
               key={item.id}
-              onClick={() => handleInputChange("budget", item.people)} // ✅ Fix: wired up
+              onClick={() => handleInputChange("budget", item.title)}
               className={`border p-4 rounded-lg cursor-pointer hover:shadow ${
-                formData.budget === item.title ? "border-blue-500 shadow" : "" // ✅ Fix: active state
+                formData.budget === item.title ? "border-blue-500 shadow" : ""
               }`}
             >
               <h1 className="text-4xl">{item.icon}</h1>
@@ -121,11 +121,11 @@ const CreateTrip = () => {
           {SelectTravelerList.map((item) => (
             <div
               key={item.id}
-              onClick={() => handleInputChange("travelers", item.title)} // ✅ Fix: wired up
+              onClick={() => handleInputChange("travelers", item.people)}
               className={`border p-4 rounded-lg cursor-pointer hover:shadow ${
-                formData.travelers === item.title
+                formData.travelers === item.people
                   ? "border-blue-500 shadow"
-                  : "" // ✅ Fix: active state
+                  : ""
               }`}
             >
               <h1 className="text-4xl">{item.icon}</h1>
