@@ -10,7 +10,7 @@ const Header = () => {
         style={{ height: "36px", width: "auto" }}
       />
       <div>
-        <Button className="px-6 py-5 ">Sign In</Button>
+        <Button className="p-5 ">Sign In</Button>
       </div>
     </div>
   );
