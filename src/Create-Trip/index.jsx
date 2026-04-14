@@ -38,7 +38,7 @@ const CreateTrip = () => {
       </p>
 
       <div className="my-10">
-        <h2 className="text-xl font-medium mb-3">
+        <h2 className="text-xl font-medium mb-3 ">
           What is destination of choice?
         </h2>
         {/* <GooglePlacesAutocomplete
