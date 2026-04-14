@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Input } from "../components/ui/input";
 import { SelectBudgetOptions, SelectTravelerList } from "../constants/options";
 import { Button } from "../components/ui/button";
+import { toast, Toaster } from "sonner";
+import { chatSession } from "../service/AIModal";
 
 const CreateTrip = () => {
   const [query, setQuery] = useState("");
@@ -35,6 +37,102 @@ const CreateTrip = () => {
 
     return () => clearTimeout(delay);
   }, [query]);
+
+  const OnGenerateTrip = async () => {
+    // Validation
+    if (!formData?.location) {
+      toast.error("Please select a destination.");
+      return;
+    }
+
+    if (!formData?.days || formData.days < 1) {
+      toast.error("Please enter a valid number of days.");
+      return;
+    }
+
+    if (formData.days > 10) {
+      toast.error("Please enter no more than 10 days.");
+      return;
+    }
+
+    if (!formData?.budget) {
+      toast.error("Please select a budget.");
+      return;
+    }
+
+    if (!formData?.travelers) {
+      toast.error("Please select who you're traveling with.");
+      return;
+    }
+
+    const toastId = toast.loading("Generating your trip... ✈️");
+
+    const prompt = `Generate a travel plan for ${formData.location}, 
+${formData.days} days, ${formData.travelers} traveler(s), ${formData.budget} budget.
+
+Return ONLY this JSON structure, be concise:
+{
+  "tripInfo": {
+    "location": "string",
+    "days": number,
+    "budget": "string",
+    "travelers": "string"
+  },
+  "hotels": [
+    {
+      "HotelName": "string",
+      "HotelAddress": "string",
+      "Price": "string",
+      "Rating": number,
+      "Description": "string",
+      "GeoCoordinates": { "lat": number, "lng": number }
+    }
+  ],
+  "itinerary": {
+    "day1": {
+      "theme": "string",
+      "places": [
+        {
+          "PlaceName": "string",
+          "PlaceDetails": "string",
+          "TicketPricing": "string",
+          "Rating": number,
+          "TravelTime": "string",
+          "BestTimeToVisit": "string",
+          "GeoCoordinates": { "lat": number, "lng": number }
+        }
+      ]
+    }
+  }
+}
+
+Limits: max 3 hotels, max 3 places per day. Keep all text values short (under 100 chars).`;
+
+    try {
+      const result = await chatSession.sendMessage(prompt);
+      const rawText = result.response.text();
+
+      // ✅ Strip markdown code fences if present
+      const cleaned = rawText
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim();
+
+      const tripData = JSON.parse(cleaned);
+      console.log(tripData);
+      toast.success("Trip generated successfully! 🎉", { id: toastId });
+    } catch (error) {
+      console.error(error);
+
+      if (error instanceof SyntaxError) {
+        toast.error("Failed to parse trip data. Please try again.", {
+          id: toastId,
+        });
+      } else {
+        toast.error("Something went wrong. Please try again.", { id: toastId });
+      }
+    }
+  };
 
   return (
     <div className="sm:px-10 md:px-32 lg:px-56 xl:px-10 px-5 mt-10 max-w-8/12 mx-auto">
@@ -137,8 +235,11 @@ const CreateTrip = () => {
       </div>
 
       <div className="flex justify-end my-10">
-        <Button className="p-5">Generate Trip</Button>
+        <Button onClick={OnGenerateTrip} className="p-5">
+          Generate Trip
+        </Button>
       </div>
+      <Toaster position="bottom-right" richColors />
     </div>
   );
 };
