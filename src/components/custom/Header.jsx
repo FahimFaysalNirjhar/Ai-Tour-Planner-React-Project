@@ -7,10 +7,10 @@ const Header = () => {
       <img
         src="/logoipsum-264.png"
         alt="Logoipsum"
-        style={{ height: "36px", width: "auto" }}
+        style={{ height: "40px", width: "auto" }}
       />
       <div>
-        <Button className="p-5 ">Sign In</Button>
+        <Button className="p-5">Sign In</Button>
       </div>
     </div>
   );
