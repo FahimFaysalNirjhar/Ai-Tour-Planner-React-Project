@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 import { Input } from "../components/ui/input";
-import { SelectBudgetOptions } from "../constants/options";
+import { SelectBudgetOptions, SelectTravelerList } from "../constants/options";
 
 const CreateTrip = () => {
   const [query, setQuery] = useState("");
@@ -88,6 +88,23 @@ const CreateTrip = () => {
         <h2 className="text-xl font-medium mb-3 ">What is Your Budget?</h2>
         <div className="grid grid-cols-3 gap-5 mt-5">
           {SelectBudgetOptions.map((item) => (
+            <div
+              key={item.id}
+              className="border p-4 rounded-lg cursor-pointer hover:shadow "
+            >
+              <h1 className="text-4xl">{item.icon}</h1>
+              <h2 className="font-bold text-lg">{item.title}</h2>
+              <p className="text-sm text-gray-500">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="my-10">
+        <h2 className="text-xl font-medium mb-3 ">
+          Who do you plan on traveling with on your next adventure?
+        </h2>
+        <div className="grid grid-cols-3 gap-5 mt-5">
+          {SelectTravelerList.map((item) => (
             <div
               key={item.id}
               className="border p-4 rounded-lg cursor-pointer hover:shadow "
