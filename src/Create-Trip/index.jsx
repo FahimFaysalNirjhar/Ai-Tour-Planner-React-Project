@@ -3,14 +3,13 @@ import { Input } from "../components/ui/input";
 import { SelectBudgetOptions, SelectTravelerList } from "../constants/options";
 import { Button } from "../components/ui/button";
 import { toast, Toaster } from "sonner";
-import { chatSession } from "../service/AIModal";
+import { generateTrip } from "../service/groqAI";
+import { cleanJSON } from "../utils/parseJSON";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
-  DialogTrigger,
 } from "../components/ui/dialog";
 import { FcGoogle } from "react-icons/fc";
 import { useGoogleLogin } from "@react-oauth/google";
@@ -20,6 +19,7 @@ const CreateTrip = () => {
   const [results, setResults] = useState([]);
   const [formData, setFormData] = useState({});
   const [openDialog, setOpenDialog] = useState(false);
+  const [pendingGenerate, setPendingGenerate] = useState(false);
 
   const handleInputChange = (name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -51,9 +51,6 @@ const CreateTrip = () => {
 
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
-      console.log("Token Response:", tokenResponse);
-
-      // Get user profile
       const res = await fetch(
         "https://www.googleapis.com/oauth2/v1/userinfo?alt=json",
         {
@@ -64,54 +61,47 @@ const CreateTrip = () => {
       );
 
       const user = await res.json();
-      console.log("User Info:", user);
+
+      localStorage.setItem("user", JSON.stringify(user));
+
+      setOpenDialog(false);
+
+      if (pendingGenerate) {
+        setPendingGenerate(false);
+        OnGenerateTrip();
+      }
     },
 
     onError: (error) => {
-      console.log("Login Failed:", error);
+      console.log(error);
     },
   });
 
   const OnGenerateTrip = async () => {
-    const user = localStorage.getItem("user");
+    const user = JSON.parse(localStorage.getItem("user"));
 
     if (!user) {
+      setPendingGenerate(true);
       setOpenDialog(true);
       return;
     }
 
-    // Validation
-    if (!formData?.location) {
-      toast.error("Please select a destination.");
-      return;
-    }
-
-    if (!formData?.days || formData.days < 1) {
-      toast.error("Please enter a valid number of days.");
-      return;
-    }
-
-    if (formData.days > 10) {
-      toast.error("Please enter no more than 10 days.");
-      return;
-    }
-
-    if (!formData?.budget) {
-      toast.error("Please select a budget.");
-      return;
-    }
-
-    if (!formData?.travelers) {
-      toast.error("Please select who you're traveling with.");
-      return;
-    }
+    if (!formData?.location) return toast.error("Please select a destination.");
+    if (!formData?.days || formData.days < 1)
+      return toast.error("Please enter valid number of days.");
+    if (formData.days > 10)
+      return toast.error("Please enter no more than 10 days.");
+    if (!formData?.budget) return toast.error("Please select a budget.");
+    if (!formData?.travelers)
+      return toast.error("Please select who you're traveling with.");
 
     const toastId = toast.loading("Generating your trip... ✈️");
 
-    const prompt = `Generate a travel plan for ${formData.location}, 
-${formData.days} days, ${formData.travelers} traveler(s), ${formData.budget} budget.
+    const prompt = `
+Generate a travel plan for ${formData.location},
+${formData.days} days, ${formData.travelers}, ${formData.budget} budget.
 
-Return ONLY this JSON structure, be concise:
+Return ONLY JSON:
 {
   "tripInfo": {
     "location": "string",
@@ -119,62 +109,38 @@ Return ONLY this JSON structure, be concise:
     "budget": "string",
     "travelers": "string"
   },
-  "hotels": [
-    {
-      "HotelName": "string",
-      "HotelAddress": "string",
-      "Price": "string",
-      "Rating": number,
-      "Description": "string",
-      "GeoCoordinates": { "lat": number, "lng": number }
-    }
-  ],
-  "itinerary": {
-    "day1": {
-      "theme": "string",
-      "places": [
-        {
-          "PlaceName": "string",
-          "PlaceDetails": "string",
-          "TicketPricing": "string",
-          "Rating": number,
-          "TravelTime": "string",
-          "BestTimeToVisit": "string",
-          "GeoCoordinates": { "lat": number, "lng": number }
-        }
-      ]
-    }
-  }
+  "hotels": [],
+  "itinerary": {}
 }
-
-Limits: max 3 hotels, max 3 places per day. Keep all text values short (under 100 chars).`;
+`;
 
     try {
-      const result = await chatSession.sendMessage(prompt);
-      const rawText = result.response.text();
+      // 🚀 GROQ CALL
+      const rawText = await generateTrip(prompt);
 
-      // ✅ Strip markdown code fences if present
-      const cleaned = rawText
-        .replace(/```json/g, "")
-        .replace(/```/g, "")
-        .trim();
-
+      // 🧹 CLEAN JSON
+      const cleaned = cleanJSON(rawText);
       const tripData = JSON.parse(cleaned);
+
       console.log(tripData);
-      toast.success("Trip generated successfully! 🎉", { id: toastId });
+
+      toast.success("Trip generated successfully! 🎉", {
+        id: toastId,
+      });
     } catch (error) {
       console.error(error);
 
       if (error instanceof SyntaxError) {
-        toast.error("Failed to parse trip data. Please try again.", {
+        toast.error("Failed to parse trip data", {
           id: toastId,
         });
       } else {
-        toast.error("Something went wrong. Please try again.", { id: toastId });
+        toast.error("Something went wrong", {
+          id: toastId,
+        });
       }
     }
   };
-
   return (
     <div className="sm:px-10 md:px-32 lg:px-56 xl:px-10 px-5 mt-10 max-w-8/12 mx-auto">
       <h1 className="font-bold text-3xl">
