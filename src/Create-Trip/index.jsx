@@ -4,11 +4,21 @@ import { SelectBudgetOptions, SelectTravelerList } from "../constants/options";
 import { Button } from "../components/ui/button";
 import { toast, Toaster } from "sonner";
 import { chatSession } from "../service/AIModal";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../components/ui/dialog";
+import { FcGoogle } from "react-icons/fc";
 
 const CreateTrip = () => {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [formData, setFormData] = useState({});
+  const [openDialog, setOpenDialog] = useState(false);
 
   const handleInputChange = (name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -39,6 +49,13 @@ const CreateTrip = () => {
   }, [query]);
 
   const OnGenerateTrip = async () => {
+    const user = localStorage.getItem("user");
+
+    if (!user) {
+      setOpenDialog(true);
+      return;
+    }
+
     // Validation
     if (!formData?.location) {
       toast.error("Please select a destination.");
@@ -143,7 +160,6 @@ Limits: max 3 hotels, max 3 places per day. Keep all text values short (under 10
         Just provide some basic information, and our trip planner will generate
         a customized itinerary based on your preferences.
       </p>
-
       {/* Location */}
       <div className="my-10">
         <h2 className="text-xl font-medium mb-3">
@@ -176,7 +192,6 @@ Limits: max 3 hotels, max 3 places per day. Keep all text values short (under 10
           </div>
         )}
       </div>
-
       {/* Days */}
       <div className="my-10">
         <h2 className="text-xl font-medium mb-3">
@@ -189,7 +204,6 @@ Limits: max 3 hotels, max 3 places per day. Keep all text values short (under 10
           onChange={(e) => handleInputChange("days", e.target.value)}
         />
       </div>
-
       {/* Budget */}
       <div className="my-10">
         <h2 className="text-xl font-medium mb-3">What is Your Budget?</h2>
@@ -209,7 +223,6 @@ Limits: max 3 hotels, max 3 places per day. Keep all text values short (under 10
           ))}
         </div>
       </div>
-
       {/* Travelers */}
       <div className="my-10">
         <h2 className="text-xl font-medium mb-3">
@@ -233,13 +246,33 @@ Limits: max 3 hotels, max 3 places per day. Keep all text values short (under 10
           ))}
         </div>
       </div>
-
       <div className="flex justify-end my-10">
         <Button onClick={OnGenerateTrip} className="p-5">
           Generate Trip
         </Button>
       </div>
-      <Toaster position="bottom-right" richColors />
+      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogDescription>
+              <img
+                src="/logoipsum-264.png"
+                alt="Logoipsum"
+                style={{ height: "40px", width: "auto" }}
+              />
+
+              <h2 className="font-bold text-lg mt-7">Sign In With Google</h2>
+
+              <p>Sign in to the App with Google authentication securely</p>
+
+              <Button className="w-full mt-5 p-5 flex items-center justify-center">
+                <FcGoogle className="w-full h-full" />
+                Sign In With Google
+              </Button>
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
