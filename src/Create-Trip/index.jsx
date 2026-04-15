@@ -13,6 +13,7 @@ import {
   DialogTrigger,
 } from "../components/ui/dialog";
 import { FcGoogle } from "react-icons/fc";
+import { useGoogleLogin } from "@react-oauth/google";
 
 const CreateTrip = () => {
   const [query, setQuery] = useState("");
@@ -47,6 +48,29 @@ const CreateTrip = () => {
 
     return () => clearTimeout(delay);
   }, [query]);
+
+  const login = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      console.log("Token Response:", tokenResponse);
+
+      // Get user profile
+      const res = await fetch(
+        "https://www.googleapis.com/oauth2/v1/userinfo?alt=json",
+        {
+          headers: {
+            Authorization: `Bearer ${tokenResponse.access_token}`,
+          },
+        },
+      );
+
+      const user = await res.json();
+      console.log("User Info:", user);
+    },
+
+    onError: (error) => {
+      console.log("Login Failed:", error);
+    },
+  });
 
   const OnGenerateTrip = async () => {
     const user = localStorage.getItem("user");
@@ -265,7 +289,10 @@ Limits: max 3 hotels, max 3 places per day. Keep all text values short (under 10
 
               <p>Sign in to the App with Google authentication securely</p>
 
-              <Button className="w-full mt-5 p-5 flex items-center justify-center">
+              <Button
+                onClick={login}
+                className="w-full mt-5 p-5 flex items-center justify-center"
+              >
                 <FcGoogle className="w-full h-full" />
                 Sign In With Google
               </Button>
