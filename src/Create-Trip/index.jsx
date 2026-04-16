@@ -13,7 +13,8 @@ import {
 } from "../components/ui/dialog";
 import { FcGoogle } from "react-icons/fc";
 import { useGoogleLogin } from "@react-oauth/google";
-
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "../service/firebaseConfig";
 const CreateTrip = () => {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
@@ -61,6 +62,14 @@ const CreateTrip = () => {
       );
 
       const user = await res.json();
+
+      const userData = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        picture: user.picture,
+      };
+      console.log(userData);
 
       localStorage.setItem("user", JSON.stringify(user));
 
@@ -123,6 +132,7 @@ Return ONLY JSON:
       const tripData = JSON.parse(cleaned);
 
       console.log(tripData);
+      SaveAiTrip(tripData);
 
       toast.success("Trip generated successfully! 🎉", {
         id: toastId,
@@ -140,6 +150,16 @@ Return ONLY JSON:
         });
       }
     }
+  };
+  const SaveAiTrip = async (TripData) => {
+    const docId = Date.now().toString();
+    const user = JSON.parse(localStorage.getItem("user"));
+    await setDoc(doc(db, "AiTrip", docId), {
+      userSelection: formData,
+      TripData: TripData,
+      userEmail: user.email,
+      id: docId,
+    });
   };
   return (
     <div className="sm:px-10 md:px-32 lg:px-56 xl:px-10 px-5 mt-10 max-w-8/12 mx-auto">
